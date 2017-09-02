@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A bot for managing and removing inactive users",
   "main": "bot.js",
+  "engines": {
+    "node": "8.4.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

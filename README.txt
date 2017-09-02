@@ -1,3 +1,3 @@
-SENSEI Bot
+SOMBRA Bot
 
-Take attendance like never before with your very own Sensei!
+Take attendance like never before with your very own Sombra!

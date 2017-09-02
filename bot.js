@@ -49,6 +49,11 @@ app.listen(port, () => {
     console.log('Our app is running on http://localhost:' + port);
 });
 
+var http = require("http");
+setInterval(function() {
+    http.get("http://db-inactivity-sweep.herokuapp.com");
+}, 300000); // every 5 minutes (300000)
+
 //runs once the bot has fully logged in
 client.on("ready", () => {
   console.log("Sombra Bot Started Successfully!");
@@ -164,7 +169,7 @@ client.on("message", (message) => {
 
     SaveUsers(fileToSave);
 
-    message.channel.send(DisplayUserTimes());
+    DisplayUserTimes(message.channel);
   }
 
   //loads users into the bot from a local JSON file
@@ -173,7 +178,7 @@ client.on("message", (message) => {
 
     LoadUsers(fileToLoad);
 
-    message.channel.send(DisplayUserTimes());
+    DisplayUserTimes(message.channel);
   }
 
   //displays the current inactive time
@@ -183,19 +188,19 @@ client.on("message", (message) => {
 
   //displays the list of all users in the server and their current times
   if (message.content.startsWith("generateuserlog")) {
-    message.channel.send(DisplayUserTimes());
+      DisplayUserTimes(message.channel);
   }
 
   //displays a list of users who have exceeded the inactive time minimum
   if (message.content.startsWith("generateauditlog")) {
-    message.channel.send(DisplayAuditTimes());
+      DisplayUserTimes(message.channel);
   }
 
   //gathers the current state of users for data monitoring
   if (message.content.startsWith("collectusers")) {
     CollectUsers(modchannel.guild);
     message.channel.send("Internal User Registration properly calibrated");
-    message.channel.send(DisplayUserTimes());
+    DisplayUserTimes(message.channel);
   }
 
   //empties the list of users
@@ -352,14 +357,20 @@ function LoadUsers(filename){
 }
 
 //displays all users in the user list, does not include bots
-function DisplayUserTimes(){
-  //console.log(users);
-  var msg = "User Times:\n";
-  Object.entries(users).forEach(([key, value])=>{
-    msg += key + " - " + CalculateTime(value) + "\n";
-  });
+function DisplayUserTimes(channel){
+    //console.log(users);
+    var msg = "User Times:\n";
+    var count = 0;
+    Object.entries(users).forEach(([key, value])=>{
+        msg += key + " - " + CalculateTime(value) + "\n";
+        count += 1;
+        if(count > 10){
+            channel.send(msg);
+            msg = "";
+        }
+    });
 
-  return msg;
+    channel.send(msg);
 }
 
 //displays all users who have exceeded the inactivity time

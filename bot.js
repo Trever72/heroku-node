@@ -188,12 +188,12 @@ client.on("message", (message) => {
 
   //displays the list of all users in the server and their current times
   if (message.content.startsWith("generateuserlog")) {
-      DisplayUserTimes(message.channel);
+    DisplayUserTimes(message.channel);
   }
 
   //displays a list of users who have exceeded the inactive time minimum
   if (message.content.startsWith("generateauditlog")) {
-      DisplayUserTimes(message.channel);
+      DisplayAuditTimes(message.channel);
   }
 
   //gathers the current state of users for data monitoring
@@ -359,31 +359,39 @@ function LoadUsers(filename){
 //displays all users in the user list, does not include bots
 function DisplayUserTimes(channel){
     //console.log(users);
-    var msg = "User Times:\n";
-    var count = 0;
-    Object.entries(users).forEach(([key, value])=>{
-        msg += key + " - " + CalculateTime(value) + "\n";
-        count += 1;
-        if(count > 10){
-            channel.send(msg);
-            msg = "";
-        }
-    });
+  var msg = "User Times:\n";
+  var count = 0;
+  Object.entries(users).forEach(([key, value])=>{
+    msg += key + " - " + CalculateTime(value) + "\n";
+    count += 1;
+    if(count > 10){
+      channel.send(msg);
+      msg = "";
+      count = 0;
+    }
+  });
 
-    channel.send(msg);
+  channel.send(msg);
 }
 
 //displays all users who have exceeded the inactivity time
-function DisplayAuditTimes(){
+function DisplayAuditTimes(channel){
   var msg = "Inactive Time: " + CalculatTimeMilliseconds(inactiveTime) + "\n";
   msg += "__**Audit Log:**__\n";
 
+  var count = 0;
   Object.entries(users).forEach(([key, value])=>{
     var currTime = Date.now() - value;
     if(currTime > inactiveTime){
       msg += key + " - " + CalculateTime(value) + "\n";
+      count += 1;
+      if(count > 10){
+        channel.send(msg);
+        msg = "";
+        count = 0;
+      }
     }
   });
 
-  return msg;
+  channel.send(msg);
 }

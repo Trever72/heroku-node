@@ -4,7 +4,6 @@
   "description": "A bot for managing and removing inactive users",
   "main": "bot.js",
   "scripts": {
-    "start": "node --harmony bot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Trever Daniels",

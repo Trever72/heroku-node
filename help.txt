@@ -1,0 +1,34 @@
+__**Available Commands:**__
+
+**Chat Commands:**
+`!hello`
+`!howAreYou`
+`!ping`
+
+**Event Commands:**
+`!help`                     (duh)
+`!showUsers`                (shows all users in the server)
+`!upTime`                   (displays how long the bot has been active)
+`!setInactiveTime 00:00:00` (sets the minimum time a user can be away
+                             in "hours:minutes:seconds")
+`!showInactiveTime`         (displays the amount of time before a user is
+                             considered "inactive")
+`!generateUserLog`          (displays all the users in the server and their
+                             time since last chat)
+`!generateAuditLog`         (displays all users who have exceeded the minimum
+                             afk time)
+`!collectUsers`             (Gathers any users not already in the user log)
+`!clearUsers`               (removes all entries from the user log)
+`!saveusers`                (saves the current state of all users to a local
+                             host file)
+`!loadUsers`                (loads a saved file of users into the bot,
+                             run !collectUsers to add users not in the save)
+`!toggleRemoveMessage`      (turns the remove user message display on or off,
+                             off by default)
+`!toggleAddMessage`         (turns the new user message display on or off,
+                             on by default)
+`!toggleSaveOnExit`         (turns the save on exit function on or off,
+                             on by default)
+`!shutdown`                 (turns the bot off, saves users by default)
+
+**(all commands are non-case sensitive)**

@@ -24,16 +24,41 @@ var saveOnExit = true;                      //saves the users states when the bo
 //used to login the bot user
 client.login(config.token);
 
+//  Extra stuff for heroku
+const express = require('express');
+const app = express();
+
+// set the port of our application
+// process.env.PORT lets the port be set by Heroku
+const port = process.env.PORT || 5000;
+
+// set the view engine to ejs
+app.set('view engine', 'ejs');
+
+// make express look in the `public` directory for assets (css/js/img)
+app.use(express.static(__dirname + '/public'));
+
+// set the home page route
+app.get('/', (request, response) => {
+    // ejs render automatically looks in the views folder
+    response.render('index');
+});
+
+app.listen(port, () => {
+    // will echo 'Our app is running on http://localhost:5000 when run locally'
+    console.log('Our app is running on http://localhost:' + port);
+});
+
 //runs once the bot has fully logged in
 client.on("ready", () => {
-  console.log("Sensei Bot Started Successfully!");
+  console.log("Sombra Bot Started Successfully!");
   startTime = Date.now();
   //console.log(`Ready to serve in ${client.channels.size} channels on ${client.guilds.size} servers, for a total of ${client.users.size} users.`);
   //console.log(client.channels);
   modchannel = client.channels.find("name", config.modchat);
   modChannelID = modchannel.id;
   //var channel = client.channels.find("name", "general");
-  modchannel.send("Sensei Bot Started Successfully!");
+  modchannel.send("Sombrero Online!");
 
   //create initial data structures
   CollectUsers(modchannel.guild);

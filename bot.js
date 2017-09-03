@@ -41,29 +41,29 @@ app.use(express.static(__dirname + '/public'));
 // set the home page route
 app.get('/', (request, response) => {
     // ejs render automatically looks in the views folder
-    response.render('index');
+  response.render('index');
 });
 
 app.listen(port, () => {
     // will echo 'Our app is running on http://localhost:5000 when run locally'
-    console.log('Our app is running on http://localhost:' + port);
+  console.log('Our app is running on http://localhost:' + port);
 });
 
 var http = require("http");
 setInterval(function() {
-    http.get("http://db-inactivity-sweep.herokuapp.com");
+  http.get("http://senseiserver.herokuapp.com/");
 }, 300000); // every 5 minutes (300000)
 
 //runs once the bot has fully logged in
 client.on("ready", () => {
-  console.log("Sombra Bot Started Successfully!");
+  console.log("Sensei Bot Started Successfully!");
   startTime = Date.now();
   //console.log(`Ready to serve in ${client.channels.size} channels on ${client.guilds.size} servers, for a total of ${client.users.size} users.`);
   //console.log(client.channels);
   modchannel = client.channels.find("name", config.modchat);
   modChannelID = modchannel.id;
   //var channel = client.channels.find("name", "general");
-  modchannel.send("Sombrero Online!");
+  modchannel.send("Class is in session!");
 
   //create initial data structures
   CollectUsers(modchannel.guild);
@@ -193,7 +193,7 @@ client.on("message", (message) => {
 
   //displays a list of users who have exceeded the inactive time minimum
   if (message.content.startsWith("generateauditlog")) {
-      DisplayAuditTimes(message.channel);
+    DisplayAuditTimes(message.channel);
   }
 
   //gathers the current state of users for data monitoring
@@ -215,7 +215,7 @@ client.on("message", (message) => {
       SaveUsers(saveFile);
     }
 
-    message.channel.send("now ending bot process");
+    message.channel.send("class dismissed");
     setTimeout(function(){
       process.exit();
     }, 5000);

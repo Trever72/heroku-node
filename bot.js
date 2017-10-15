@@ -60,7 +60,7 @@ setInterval(function() {
 
 //auto saves every hour
 setInterval(function() {
-  AutoSave();
+  AutoSave(config.saveFile);
 }, 3600000);
 
 //runs once the bot has fully logged in

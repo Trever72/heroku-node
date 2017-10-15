@@ -6,7 +6,7 @@
 
 const Discord = require("discord.js");      //the javascript libraries for running discord
 const config = require("./config.json");    //local configuration file, set values that may change in the config file not here
-const activity = require("./activity.json");//keeps track of the the bots total uptime, if its currently active, primarily for minor lags in server activity so the bot wont restart
+var activity = require("./activity.json");//keeps track of the the bots total uptime, if its currently active, primarily for minor lags in server activity so the bot wont restart
 var fs = require("fs");                     //file reading dependencies
 const client = new Discord.Client();        //creates a new discord client object
 var startTime;                              //the time this bot was started in milliseconds since 1/1/1970
@@ -55,7 +55,7 @@ var http = require("http");
 
 //tells the bot to stay awake
 setInterval(function() {
-  http.get("http://senseiserver.herokuapp.com/");
+  http.get("http://senseibot.herokuapp.com/");
 }, 300000); // every 5 minutes (300000)
 
 //auto saves every hour
@@ -86,6 +86,7 @@ client.on("ready", () => {
     SetModChannel();
     LoadUsers(saveFile);
     inactiveTime = activity.inactiveTime;
+    activity.online = true;
   }
 });
 
@@ -266,6 +267,13 @@ client.on("message", (message) => {
   //displays the contents of the help txt file
   if (message.content.startsWith("help")) {
     fs.readFile(config.help, "utf8", function(error, data) {
+      message.channel.send(data);
+    });
+  }
+
+  //displays contents of activity.json
+  if(message.content.startsWith("activity")){
+    fs.readFile("activity.json", "utf8", function(error, data) {
       message.channel.send(data);
     });
   }

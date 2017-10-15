@@ -366,6 +366,8 @@ function AutoSave(filename){
     if(err) console.error(err);
   });
 
+  modchannel.send("Autosaved file");
+
   activity.inactiveTime = inactiveTime;
   activity.online = true;
 }

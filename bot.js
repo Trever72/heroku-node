@@ -1,10 +1,12 @@
 // Sensei Bot JavaScript source code
 // Created By: Trever Daniels
-// Version: 1.0
-// Last Updated June 2017
+// Version: 1.1
+// Created June 2017
+// Last Updated October 14th, 2017
 
 const Discord = require("discord.js");      //the javascript libraries for running discord
-const config = require("./config.json");    //local cinfiguration file, set values that may change in the config file not here
+const config = require("./config.json");    //local configuration file, set values that may change in the config file not here
+const activity = require("./activity.json");//keeps track of the the bots total uptime, if its currently active, primarily for minor lags in server activity so the bot wont restart
 var fs = require("fs");                     //file reading dependencies
 const client = new Discord.Client();        //creates a new discord client object
 var startTime;                              //the time this bot was started in milliseconds since 1/1/1970
@@ -25,7 +27,7 @@ var saveOnExit = true;                      //saves the users states when the bo
 client.login(config.token);
 
 //  Extra stuff for heroku
-const express = require('express');
+const express = require("express");
 const app = express();
 
 // set the port of our application
@@ -33,43 +35,64 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // set the view engine to ejs
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
 // make express look in the `public` directory for assets (css/js/img)
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + "/public"));
 
 // set the home page route
-app.get('/', (request, response) => {
+app.get("/", (request, response) => {
     // ejs render automatically looks in the views folder
-  response.render('index');
+  response.render("index");
 });
 
 app.listen(port, () => {
     // will echo 'Our app is running on http://localhost:5000 when run locally'
-  console.log('Our app is running on http://localhost:' + port);
+  console.log("Our app is running on http://localhost:" + port);
 });
 
 var http = require("http");
+
+//tells the bot to stay awake
 setInterval(function() {
   http.get("http://senseiserver.herokuapp.com/");
 }, 300000); // every 5 minutes (300000)
 
+//auto saves every hour
+setInterval(function() {
+  AutoSave();
+}, 3600000);
+
 //runs once the bot has fully logged in
 client.on("ready", () => {
-  console.log("Sensei Bot Started Successfully!");
-  startTime = Date.now();
-  //console.log(`Ready to serve in ${client.channels.size} channels on ${client.guilds.size} servers, for a total of ${client.users.size} users.`);
-  //console.log(client.channels);
+  if(activity.online == false){
+    console.log("Sensei Bot Started Successfully!");
+    startTime = Date.now();
+    activity.startTime = startTime;
+    //console.log(`Ready to serve in ${client.channels.size} channels on ${client.guilds.size} servers, for a total of ${client.users.size} users.`);
+    //console.log(client.channels);
+    SetModChannel();
+    //var channel = client.channels.find("name", "general");
+    modchannel.send("Class is in session!");
+
+    //create initial data structures
+    CollectUsers(modchannel.guild);
+    SetInactiveTime(48,0,0);
+    modchannel.send("Inactive Time Defaulted To: " + CalculatTimeMilliseconds(inactiveTime));
+    activity.online = true;
+  }
+  else{
+    startTime = activity.startTime;
+    SetModChannel();
+    LoadUsers(saveFile);
+    inactiveTime = activity.inactiveTime;
+  }
+});
+
+function SetModChannel(){
   modchannel = client.channels.find("name", config.modchat);
   modChannelID = modchannel.id;
-  //var channel = client.channels.find("name", "general");
-  modchannel.send("Class is in session!");
-
-  //create initial data structures
-  CollectUsers(modchannel.guild);
-  SetInactiveTime(48,0,0);
-  modchannel.send("Inactive Time Defaulted To: " + CalculatTimeMilliseconds(inactiveTime));
-});
+}
 
 //runs whenever someone joins the server, adds them to the list of users with a default time
 client.on("guildMemberAdd", (member) => {
@@ -214,6 +237,7 @@ client.on("message", (message) => {
     if(saveOnExit){
       SaveUsers(saveFile);
     }
+    activity.online = false;
 
     message.channel.send("class dismissed");
     setTimeout(function(){
@@ -270,6 +294,7 @@ client.on("message", (message) => {
 function SetInactiveTime(hours, minutes, seconds){
   var sec = (hours * 60000 * 60) + (minutes * 60000) + (seconds * 1000);
   inactiveTime = sec;
+  activity.inactiveTime = inactiveTime;
 }
 
 //calculates the hours, minutes, and seconds given a Date.now() time
@@ -317,7 +342,7 @@ function CollectUsers(guild){
 //Saves users to the designated JSON file
 function SaveUsers(filename){
   if(!fs.existsSync(filename)){
-    modchannel.send("This chosen file does not exist");
+    modchannel.send("Save file does not exist");
     return;
   }
   var displayName = filename.substring(2);
@@ -330,10 +355,25 @@ function SaveUsers(filename){
   modchannel.send("Users Saved to " + displayName);
 }
 
+//auto saves all userfiles and activity variables
+function AutoSave(filename){
+  if(!fs.existsSync(filename)){
+    modchannel.send("AutoSave file does not exist");
+    return;
+  }
+
+  fs.writeFile(filename, JSON.stringify(users), (err) => {
+    if(err) console.error(err);
+  });
+
+  activity.inactiveTime = inactiveTime;
+  activity.online = true;
+}
+
 //Loads users into the designated JSON file
 function LoadUsers(filename){
   if(!fs.existsSync(filename)){
-    modchannel.send("This chosen file does not exist");
+    modchannel.send("Load file does not exist");
     return;
   }
   var displayName = filename.substring(2);

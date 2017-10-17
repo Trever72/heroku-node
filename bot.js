@@ -67,6 +67,7 @@ setInterval(function() {
 
 //runs once the bot has fully logged in
 client.on("ready", () => {
+  SetModChannel();
   LoadActivity();
 
   if(online == false){
@@ -74,7 +75,6 @@ client.on("ready", () => {
     startTime = Date.now();
     //console.log(`Ready to serve in ${client.channels.size} channels on ${client.guilds.size} servers, for a total of ${client.users.size} users.`);
     //console.log(client.channels);
-    SetModChannel();
     //var channel = client.channels.find("name", "general");
     modchannel.send("Class is in session!");
 
@@ -87,7 +87,6 @@ client.on("ready", () => {
   }
   else{
     modchannel.send("Running Restart Method.");
-    SetModChannel();
     LoadUsers(saveFile);
   }
 });
@@ -393,7 +392,7 @@ function AutoSave(filename){
 
 function Save(filename){
 
-  fs.writeFile(filename, JSON.stringify(users), (err) => {
+  fs.writeFile(filename, JSON.stringify(users), "utf8", (err) => {
     if(err) console.error(err);
   });
 
@@ -415,7 +414,7 @@ function SaveActivity(){
   var json = JSON.stringify(act);
   modchannel.send("json that will be saved to file: " + json);
 
-  fs.writeFile(activityFile, json, (err) => {
+  fs.writeFile(activityFile, json, "utf8", (err) => {
     if(err) console.error(err);
   });
 
@@ -459,10 +458,6 @@ function LoadActivity(){
 }
 
 function Activity(){
-  fs.readFile(activityFile, "utf8", function(error, data) {
-    modchannel.send("load activity - raw file: " + data);
-  });
-
   var fileContents = fs.readFileSync(activityFile, "utf8");
   try{
     var loadedJSON = JSON.parse(fileContents);
@@ -478,7 +473,8 @@ function Activity(){
   }
 
   var act = loadedJSON;
-  modchannel.send("Activity Loaded from " + activityFile.substring(2));
+  //modchannel.send("Activity Loaded");
+  //modchannel.send("Loaded JSON: " + loadedJSON);
   return act;
 }
 

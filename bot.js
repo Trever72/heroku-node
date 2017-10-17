@@ -15,7 +15,7 @@ var users = {};                             //all the users apart of this guild 
 var modchannel;                             //the admin only chat this bot will post in
 var modChannelID;                           //the channel id for this chat
 var memberAddDisplay = true;                //will display the new member message if true
-var memberRemoveDisplay = false;            //will display the remove member message if true
+var memberRemoveDisplay = true;             //will display the remove member message if true
 var saveFile = "./" + config.saveFile;      //the full path name of the default save file
 var activityFile = "./activity.json";
 var saveOnExit = true;                      //saves the users states when the bot shutdowns
@@ -224,7 +224,7 @@ client.on("message", (message) => {
   //gathers the current state of users for data monitoring
   if (message.content.startsWith("collectusers")) {
     CollectUsers(modchannel.guild);
-    message.channel.send("Internal User Registration properly calibrated");
+    message.channel.send("Internal User Registration Calibrated");
     DisplayUserTimes(message.channel);
   }
 
@@ -254,7 +254,7 @@ client.on("message", (message) => {
   //turns the save on exit function on or off
   if (message.content.startsWith("togglesaveonexit")) {
     saveOnExit = !saveOnExit;
-    message.channel.send("Save On Exit: " + memberAddDisplay);
+    message.channel.send("Save On Exit: " + saveOnExit);
   }
 
   //turns the new user message on or off, used for when a new user joins the server
@@ -266,7 +266,7 @@ client.on("message", (message) => {
   //turns the remove user message on or off, used for when a user is kicked or leaves
   if (message.content.startsWith("toggleremovemessage")) {
     memberRemoveDisplay = !memberRemoveDisplay;
-    message.channel.send("Display Member Removed Message: " + memberAddDisplay);
+    message.channel.send("Display Member Removed Message: " + memberRemoveDisplay);
   }
 
   //displays the contents of the help txt file
@@ -285,6 +285,9 @@ client.on("message", (message) => {
     txt += "Online: " + act["online"] + "\n";
     txt += "Start Time: " + CalculatTimeMilliseconds(act["startTime"]) + "\n";
     txt += "Inactive Time: " + CalculatTimeMilliseconds(act["inactiveTime"]) + "\n";
+    txt += "Remove User Message Display: " + act["memberRemoveDisplay"] + "\n";
+    txt += "Add User Message Display: " + act["memberAddDisplay"] + "\n";
+    txt += "Save on Shutdown: " + act["saveOnExit"] + "\n";
 
     modchannel.send(txt);
   }
@@ -292,7 +295,15 @@ client.on("message", (message) => {
   //manualy loads the activity file into the bot's local memory
   if(message.content.startsWith("loadactivity")){
     LoadActivity();
-    modchannel.send("Activity loaded into local memory");
+    txt = "Activity loaded into local memory!\n\n";
+
+    txt += "Online: " + online + "\n";
+    txt += "Start Time: " + CalculatTimeMilliseconds(startTime) + "\n";
+    txt += "Inactive Time: " + CalculatTimeMilliseconds(inactiveTime) + "\n";
+    txt += "Remove User Message Display: " + memberRemoveDisplay + "\n";
+    txt += "Add User Message Display: " + memberAddDisplay + "\n";
+    txt += "Save on Shutdown: " + saveOnExit + "\n";
+    modchannel.send(txt);
   }
 
   /*
@@ -349,7 +360,7 @@ function CalculatTimeMilliseconds(time){
 
 //removes all users from the users list
 function ClearUsers(){
-  users.clear();
+  users = {};
 }
 
 //gathers all users currently in the server
@@ -373,7 +384,9 @@ function SaveUsers(filename){
   var displayName = filename.substring(2);
   modchannel.send("Saving file " + displayName + " ...");
 
-  Save(filename);
+  if(!Save(filename)){
+    return;
+  }
 
   modchannel.send("Users Saved to " + displayName);
 }
@@ -385,7 +398,9 @@ function AutoSave(filename){
     return;
   }
 
-  Save(filename);
+  if(!Save(filename)){
+    return;
+  }
 
   modchannel.send("Autosaved file");
 }
@@ -393,7 +408,11 @@ function AutoSave(filename){
 function Save(filename){
 
   fs.writeFile(filename, JSON.stringify(users), "utf8", (err) => {
-    if(err) console.error(err);
+    if(err) {
+      console.error(err);
+      modchannel.send("Save File Error: " + err);
+      return false;
+    }
   });
 
   SaveActivity();
@@ -408,19 +427,25 @@ function SaveActivity(){
   var act = {
     "online": online,
     "startTime": startTime,
-    "inactiveTime": inactiveTime
+    "inactiveTime": inactiveTime,
+    "memberRemoveDisplay": memberRemoveDisplay,
+    "memberAddDisplay": memberAddDisplay,
+    "saveOnExit": saveOnExit
   };
 
   var json = JSON.stringify(act);
-  modchannel.send("json that will be saved to file: " + json);
+  //modchannel.send("json that will be saved to file: " + json);
 
   fs.writeFile(activityFile, json, "utf8", (err) => {
-    if(err) console.error(err);
+    if(err) {
+      console.error(err);
+      modchannel.send("Activity File Error: " + err);
+    }
   });
-
+/*
   fs.readFile(activityFile, "utf8", function(error, data) {
     modchannel.send("save activity - raw file: " + data);
-  });
+  });*/
 }
 
 //Loads users into the designated JSON file
@@ -431,22 +456,29 @@ function LoadUsers(filename){
   }
   var displayName = filename.substring(2);
   modchannel.send("Loading file " + displayName + " ...");
+
+  if(!Load(filename)){
+    return;
+  }
+
+  modchannel.send("Users Loaded from " + displayName);
+}
+
+function Load(filename){
   var fileContents = fs.readFileSync(filename, "utf8");
   try{
     var loadedJSON = JSON.parse(fileContents);
   } catch (err){
     console.error(err);
     modchannel.send("File Error: " + err);
-    return;
+    return false;
   }
   if(loadedJSON.length <= 0){
     modchannel.send("This file is empty");
-    return;
+    return false;
   }
 
   users = loadedJSON;
-
-  modchannel.send("Users Loaded from " + displayName);
 }
 
 function LoadActivity(){
@@ -455,6 +487,9 @@ function LoadActivity(){
   online = act["online"];
   startTime = act["startTime"];
   inactiveTime = act["inactiveTime"];
+  memberRemoveDisplay = act["memberRemoveDisplay"];
+  memberAddDisplay = act["memberAddDisplay"];
+  saveOnExit = act["saveOnExit"];
 }
 
 function Activity(){

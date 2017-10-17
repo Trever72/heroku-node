@@ -6,7 +6,7 @@
 
 const Discord = require("discord.js");      //the javascript libraries for running discord
 const config = require("./config.json");    //local configuration file, set values that may change in the config file not here
-var activity = require("./activity.json");//keeps track of the the bots total uptime, if its currently active, primarily for minor lags in server activity so the bot wont restart
+//var activity = require("./activity.json");//keeps track of the the bots total uptime, if its currently active, primarily for minor lags in server activity so the bot wont restart
 var fs = require("fs");                     //file reading dependencies
 const client = new Discord.Client();        //creates a new discord client object
 var startTime;                              //the time this bot was started in milliseconds since 1/1/1970
@@ -17,7 +17,9 @@ var modChannelID;                           //the channel id for this chat
 var memberAddDisplay = true;                //will display the new member message if true
 var memberRemoveDisplay = false;            //will display the remove member message if true
 var saveFile = "./" + config.saveFile;      //the full path name of the default save file
+var activityFile = "./activity.json";
 var saveOnExit = true;                      //saves the users states when the bot shutdowns
+var online = false;
 
 //all client.on functions run asynchronously, meaning that
 //the function is run anytime an event or action happens
@@ -65,10 +67,11 @@ setInterval(function() {
 
 //runs once the bot has fully logged in
 client.on("ready", () => {
-  if(activity.online == false){
+  LoadActivity();
+
+  if(online == false){
     console.log("Sensei Bot Started Successfully!");
     startTime = Date.now();
-    activity.startTime = startTime;
     //console.log(`Ready to serve in ${client.channels.size} channels on ${client.guilds.size} servers, for a total of ${client.users.size} users.`);
     //console.log(client.channels);
     SetModChannel();
@@ -79,14 +82,13 @@ client.on("ready", () => {
     CollectUsers(modchannel.guild);
     SetInactiveTime(48,0,0);
     modchannel.send("Inactive Time Defaulted To: " + CalculatTimeMilliseconds(inactiveTime));
-    activity.online = true;
+    online = true;
+    SaveActivity();
   }
   else{
-    startTime = activity.startTime;
+    modchannel.send("Running Restart Method.");
     SetModChannel();
     LoadUsers(saveFile);
-    inactiveTime = activity.inactiveTime;
-    activity.online = true;
   }
 });
 
@@ -235,10 +237,14 @@ client.on("message", (message) => {
 
   //shutsdown the bot and displays a status message, saves user state if set to true
   if (message.content.startsWith("shutdown")) {
+    online = false;
+
     if(saveOnExit){
       SaveUsers(saveFile);
     }
-    activity.online = false;
+    else{
+      SaveActivity();
+    }
 
     message.channel.send("class dismissed");
     setTimeout(function(){
@@ -273,7 +279,7 @@ client.on("message", (message) => {
 
   //displays contents of activity.json
   if(message.content.startsWith("activity")){
-    fs.readFile("activity.json", "utf8", function(error, data) {
+    fs.readFile(activityFile, "utf8", function(error, data) {
       message.channel.send(data);
     });
   }
@@ -302,7 +308,7 @@ client.on("message", (message) => {
 function SetInactiveTime(hours, minutes, seconds){
   var sec = (hours * 60000 * 60) + (minutes * 60000) + (seconds * 1000);
   inactiveTime = sec;
-  activity.inactiveTime = inactiveTime;
+  SaveActivity();
 }
 
 //calculates the hours, minutes, and seconds given a Date.now() time
@@ -356,9 +362,7 @@ function SaveUsers(filename){
   var displayName = filename.substring(2);
   modchannel.send("Saving file " + displayName + " ...");
 
-  fs.writeFile(filename, JSON.stringify(users), (err) => {
-    if(err) console.error(err);
-  });
+  Save(filename);
 
   modchannel.send("Users Saved to " + displayName);
 }
@@ -370,14 +374,35 @@ function AutoSave(filename){
     return;
   }
 
+  Save(filename);
+
+  modchannel.send("Autosaved file");
+}
+
+function Save(filename){
+
   fs.writeFile(filename, JSON.stringify(users), (err) => {
     if(err) console.error(err);
   });
 
-  modchannel.send("Autosaved file");
+  SaveActivity();
+}
 
-  activity.inactiveTime = inactiveTime;
-  activity.online = true;
+function SaveActivity(){
+  if(!fs.existsSync(activityFile)){
+    modchannel.send("Activity file does not exist");
+    return;
+  }
+
+  var act = {
+    "online": online,
+    "startTime": startTime,
+    "inactiveTime": inactiveTime
+  };
+
+  fs.writeFile(activityFile, JSON.stringify(act), (err) => {
+    if(err) console.error(err);
+  });
 }
 
 //Loads users into the designated JSON file
@@ -404,6 +429,32 @@ function LoadUsers(filename){
   users = loadedJSON;
 
   modchannel.send("Users Loaded from " + displayName);
+}
+
+function LoadActivity(){
+  if(!fs.existsSync(activityFile)){
+    modchannel.send("Activity file does not exist");
+    return;
+  }
+
+  var fileContents = fs.readFileSync(activityFile, "utf8");
+  try{
+    var loadedJSON = JSON.parse(fileContents);
+  } catch (err){
+    console.error(err);
+    modchannel.send("File Error: " + err);
+    return;
+  }
+  if(loadedJSON.length <= 0){
+    modchannel.send("Activity file is empty");
+    return;
+  }
+
+  var act = loadedJSON;
+
+  online = act["online"];
+  startTime = act["startTime"];
+  inactiveTime = act["inactiveTime"];
 }
 
 //displays all users in the user list, does not include bots

@@ -87,7 +87,7 @@ client.on("ready", () => {
   }
   else{
     modchannel.send("Running Restart Method.");
-    LoadUsers(saveFile);
+    Load(saveFile);
   }
 });
 
@@ -306,6 +306,13 @@ client.on("message", (message) => {
     modchannel.send(txt);
   }
 
+  //manualy saves the activity file into the bot's local memory
+  if(message.content.startsWith("save")){
+    SaveActivity();
+    txt = "Activity saved to file!";
+    modchannel.send(txt);
+  }
+
   /*
   vvv All Chat Commands vvv
   */
@@ -457,7 +464,10 @@ function LoadUsers(filename){
   var displayName = filename.substring(2);
   modchannel.send("Loading file " + displayName + " ...");
 
-  if(!Load(filename)){
+  var fileFailed = Load(filename);
+
+  if(fileFailed == false){
+    modchannel.send("Load Users Failed")
     return;
   }
 

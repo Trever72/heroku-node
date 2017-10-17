@@ -285,6 +285,8 @@ client.on("message", (message) => {
     } catch (err){
       console.error(err);
       modchannel.send("File Error: " + err);
+      modchannel.send(fileContents);
+      modchannel.send(loadedJSON);
       return;
     }
     if(loadedJSON.length <= 0){
@@ -305,7 +307,7 @@ client.on("message", (message) => {
   //manualy loads the activity file into the bot's local memory
   if(message.content.startsWith("loadActivity")){
     LoadActivity();
-    message.channel.send("Activity loaded into local memory");
+    modchannel.send("Activity loaded into local memory");
   }
 
   /*
@@ -314,7 +316,7 @@ client.on("message", (message) => {
 
   //silly chat command
   if (message.content.startsWith("hello")) {
-    message.channel.send(message.author + " sup");
+    modchannel.send(message.author + " sup");
   }
 
   //silly chat command

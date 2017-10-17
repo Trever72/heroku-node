@@ -286,7 +286,6 @@ client.on("message", (message) => {
       console.error(err);
       modchannel.send("File Error: " + err);
       modchannel.send(fileContents);
-      modchannel.send(loadedJSON);
       return;
     }
     if(loadedJSON.length <= 0){
@@ -426,7 +425,10 @@ function SaveActivity(){
     "inactiveTime": inactiveTime
   };
 
-  fs.writeFile(activityFile, JSON.stringify(act), (err) => {
+  var json = JSON.stringify(act);
+  modchannel.send(json);
+
+  fs.writeFile(activityFile, json, (err) => {
     if(err) console.error(err);
   });
 }

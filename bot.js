@@ -17,9 +17,9 @@ var modChannelID;                           //the channel id for this chat
 var memberAddDisplay = true;                //will display the new member message if true
 var memberRemoveDisplay = true;             //will display the remove member message if true
 var saveFile = "./" + config.saveFile;      //the full path name of the default save file
-var activityFile = "./activity.json";
+var activityFile = "./activity.json";       //the full path name of the activity save file
 var saveOnExit = true;                      //saves the users states when the bot shutdowns
-var online = false;
+var online = false;                         //local variable for cecking if the bot is online
 
 //all client.on functions run asynchronously, meaning that
 //the function is run anytime an event or action happens
@@ -80,10 +80,9 @@ client.on("ready", () => {
 
     //create initial data structures
     CollectUsers(modchannel.guild);
+    online = true;
     SetInactiveTime(48,0,0);
     modchannel.send("Inactive Time Defaulted To: " + CalculatTimeMilliseconds(inactiveTime));
-    online = true;
-    SaveActivity();
   }
   else{
     modchannel.send("Running Restart Method.");
@@ -391,7 +390,10 @@ function SaveUsers(filename){
   var displayName = filename.substring(2);
   modchannel.send("Saving file " + displayName + " ...");
 
-  if(!Save(filename)){
+  var fileFailed = Save(filename);
+
+  if(fileFailed == false){
+    modchannel.send("Save Users Failed");
     return;
   }
 
@@ -405,7 +407,10 @@ function AutoSave(filename){
     return;
   }
 
-  if(!Save(filename)){
+  var fileFailed = Save(filename);
+
+  if(fileFailed == false){
+    modchannel.send("Auto Save Failed");
     return;
   }
 
@@ -452,7 +457,8 @@ function SaveActivity(){
 /*
   fs.readFile(activityFile, "utf8", function(error, data) {
     modchannel.send("save activity - raw file: " + data);
-  });*/
+  });
+  */
 }
 
 //Loads users into the designated JSON file
@@ -467,7 +473,7 @@ function LoadUsers(filename){
   var fileFailed = Load(filename);
 
   if(fileFailed == false){
-    modchannel.send("Load Users Failed")
+    modchannel.send("Load Users Failed");
     return;
   }
 

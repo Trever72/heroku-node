@@ -22,6 +22,7 @@ __**Available Commands:**__
 `!toggleSaveOnExit`         (turns the save on exit function on or off, on by default)
 `!activity`                 (displays the contents of the bot's activity file in an easy to read format)
 `!loadActivity`             (manually loads the activity file into the bot's local memory)
+`!saveActivity`             (manually saves the activity file)
 `!shutdown`                 (turns the bot off, saves users by default)
 
 **(all commands are non-case sensitive)**

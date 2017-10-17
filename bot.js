@@ -279,21 +279,8 @@ client.on("message", (message) => {
 
   //displays contents of activity.json in a readable format
   if(message.content.startsWith("activity")){
-    var fileContents = fs.readFileSync(activityFile, "utf8");
-    try{
-      var loadedJSON = JSON.parse(fileContents);
-    } catch (err){
-      console.error(err);
-      modchannel.send("File Error: " + err);
-      modchannel.send(fileContents);
-      return;
-    }
-    if(loadedJSON.length <= 0){
-      modchannel.send("Activity file is empty");
-      return;
-    }
 
-    var act = loadedJSON;
+    var act = Activity();
     var txt = "";
 
     txt += "Online: " + act["online"] + "\n";
@@ -304,7 +291,7 @@ client.on("message", (message) => {
   }
 
   //manualy loads the activity file into the bot's local memory
-  if(message.content.startsWith("loadActivity")){
+  if(message.content.startsWith("loadactivity")){
     LoadActivity();
     modchannel.send("Activity loaded into local memory");
   }
@@ -460,10 +447,17 @@ function LoadUsers(filename){
 }
 
 function LoadActivity(){
-  if(!fs.existsSync(activityFile)){
-    modchannel.send("Activity file does not exist");
-    return;
-  }
+  var act = Activity();
+
+  online = act["online"];
+  startTime = act["startTime"];
+  inactiveTime = act["inactiveTime"];
+}
+
+function Activity(){
+  fs.readFile(activityFile, "utf8", function(error, data) {
+    modchannel.send("raw file: " + data);
+  });
 
   var fileContents = fs.readFileSync(activityFile, "utf8");
   try{
@@ -471,6 +465,7 @@ function LoadActivity(){
   } catch (err){
     console.error(err);
     modchannel.send("File Error: " + err);
+    modchannel.send("File Error contents: " + fileContents);
     return;
   }
   if(loadedJSON.length <= 0){
@@ -479,10 +474,7 @@ function LoadActivity(){
   }
 
   var act = loadedJSON;
-
-  online = act["online"];
-  startTime = act["startTime"];
-  inactiveTime = act["inactiveTime"];
+  return act;
 }
 
 //displays all users in the user list, does not include bots

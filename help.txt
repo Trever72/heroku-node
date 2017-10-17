@@ -20,6 +20,8 @@ __**Available Commands:**__
 `!toggleRemoveMessage`      (turns the remove user message display on or off, off by default)
 `!toggleAddMessage`         (turns the new user message display on or off, on by default)
 `!toggleSaveOnExit`         (turns the save on exit function on or off, on by default)
+`!activity`                 (displays the contents of the bot's activity file in an easy to read format)
+`!loadActivity`             (manually loads the activity file into the bot's local memory)
 `!shutdown`                 (turns the bot off, saves users by default)
 
 **(all commands are non-case sensitive)**

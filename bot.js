@@ -277,11 +277,35 @@ client.on("message", (message) => {
     });
   }
 
-  //displays contents of activity.json
+  //displays contents of activity.json in a readable format
   if(message.content.startsWith("activity")){
-    fs.readFile(activityFile, "utf8", function(error, data) {
-      message.channel.send(data);
-    });
+    var fileContents = fs.readFileSync(activityFile, "utf8");
+    try{
+      var loadedJSON = JSON.parse(fileContents);
+    } catch (err){
+      console.error(err);
+      modchannel.send("File Error: " + err);
+      return;
+    }
+    if(loadedJSON.length <= 0){
+      modchannel.send("Activity file is empty");
+      return;
+    }
+
+    var act = loadedJSON;
+    var txt = "";
+
+    txt += "Online: " + act["online"] + "\n";
+    txt += "Start Time: " + CalculatTimeMilliseconds(act["startTime"]) + "\n";
+    txt += "Inactive Time: " + CalculatTimeMilliseconds(act["inactiveTime"]) + "\n";
+
+    modchannel.send(txt);
+  }
+
+  //manualy loads the activity file into the bot's local memory
+  if(message.content.startsWith("loadActivity")){
+    LoadActivity();
+    message.channel.send("Activity loaded into local memory");
   }
 
   /*

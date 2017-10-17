@@ -413,10 +413,14 @@ function SaveActivity(){
   };
 
   var json = JSON.stringify(act);
-  modchannel.send(json);
+  modchannel.send("json that will be saved to file: " + json);
 
   fs.writeFile(activityFile, json, (err) => {
     if(err) console.error(err);
+  });
+
+  fs.readFile(activityFile, "utf8", function(error, data) {
+    modchannel.send("save activity - raw file: " + data);
   });
 }
 
@@ -456,7 +460,7 @@ function LoadActivity(){
 
 function Activity(){
   fs.readFile(activityFile, "utf8", function(error, data) {
-    modchannel.send("raw file: " + data);
+    modchannel.send("load activity - raw file: " + data);
   });
 
   var fileContents = fs.readFileSync(activityFile, "utf8");
@@ -474,6 +478,7 @@ function Activity(){
   }
 
   var act = loadedJSON;
+  modchannel.send("Activity Loaded from " + activityFile.substring(2));
   return act;
 }
 

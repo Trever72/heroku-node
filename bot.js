@@ -2,7 +2,7 @@
 // Created By: Trever Daniels
 // Version: 1.1
 // Created June 2017
-// Last Updated October 14th, 2017
+// Last Updated October 17th, 2017
 
 const Discord = require("discord.js");      //the javascript libraries for running discord
 const config = require("./config.json");    //local configuration file, set values that may change in the config file not here
@@ -20,6 +20,7 @@ var saveFile = "./" + config.saveFile;      //the full path name of the default 
 var activityFile = "./activity.json";       //the full path name of the activity save file
 var saveOnExit = true;                      //saves the users states when the bot shutdowns
 var online = false;                         //local variable for cecking if the bot is online
+var saving = false;                          //checks if we are currently saving to a file to avoit file corruption
 
 //all client.on functions run asynchronously, meaning that
 //the function is run anytime an event or action happens
@@ -90,6 +91,7 @@ client.on("ready", () => {
   }
 });
 
+//sets teh local mod chat varible
 function SetModChannel(){
   modchannel = client.channels.find("name", config.modchat);
   modChannelID = modchannel.id;
@@ -414,11 +416,16 @@ function AutoSave(filename){
     return;
   }
 
-  modchannel.send("Autosaved file");
+  //modchannel.send("Autosaved file");
 }
 
+//saves all user data to file
 function Save(filename){
+  if(saving == true){
+    modchannel.send("Could not save, file save is already in progress.");
+  }
 
+  saving = true;
   fs.writeFile(filename, JSON.stringify(users), "utf8", (err) => {
     if(err) {
       console.error(err);
@@ -426,15 +433,22 @@ function Save(filename){
       return false;
     }
   });
+  saving = false;
 
   SaveActivity();
 }
 
+//saves all local variables to the activity file
 function SaveActivity(){
   if(!fs.existsSync(activityFile)){
     modchannel.send("Activity file does not exist");
     return;
   }
+
+  if(saving == true){
+    modchannel.send("Could not save, file save is already in progress.");
+  }
+  saving = true;
 
   var act = {
     "online": online,
@@ -446,7 +460,6 @@ function SaveActivity(){
   };
 
   var json = JSON.stringify(act);
-  //modchannel.send("json that will be saved to file: " + json);
 
   fs.writeFile(activityFile, json, "utf8", (err) => {
     if(err) {
@@ -454,11 +467,7 @@ function SaveActivity(){
       modchannel.send("Activity File Error: " + err);
     }
   });
-/*
-  fs.readFile(activityFile, "utf8", function(error, data) {
-    modchannel.send("save activity - raw file: " + data);
-  });
-  */
+  saving = false;
 }
 
 //Loads users into the designated JSON file
@@ -480,6 +489,7 @@ function LoadUsers(filename){
   modchannel.send("Users Loaded from " + displayName);
 }
 
+//loads the users from file
 function Load(filename){
   var fileContents = fs.readFileSync(filename, "utf8");
   try{
@@ -497,6 +507,7 @@ function Load(filename){
   users = loadedJSON;
 }
 
+//loads and sets the activity variables
 function LoadActivity(){
   var act = Activity();
 
@@ -508,6 +519,7 @@ function LoadActivity(){
   saveOnExit = act["saveOnExit"];
 }
 
+//loads the activity from file
 function Activity(){
   var fileContents = fs.readFileSync(activityFile, "utf8");
   try{

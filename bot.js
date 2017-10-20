@@ -2,7 +2,7 @@
 // Created By: Trever Daniels
 // Version: 1.1
 // Created June 2017
-// Last Updated October 17th, 2017
+// Last Updated October 20th, 2017
 
 const Discord = require("discord.js");      //the javascript libraries for running discord
 const config = require("./config.json");    //local configuration file, set values that may change in the config file not here
